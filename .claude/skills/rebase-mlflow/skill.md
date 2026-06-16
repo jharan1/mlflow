@@ -312,7 +312,11 @@ Product security prohibits force pushing. Use the `merge -s ours` strategy:
     - Squashed commits by category (with original hashes)
     - Conflict resolutions (file-by-file)
     - Post-rebase CI fixes applied
+    - UI fixes found during visual verification (CSS overrides, layout issues)
+    - Test updates for ODH-simplified behavior
     - Commits that were missing the `keep:`/`drop:` prefix
+
+    **Keep updating FORK_HISTORY.md throughout the process** — don't wait until the end. Every fix you make after the initial rebase (CI failures, UI regressions, test mismatches) should be added. The next person rebasing needs to know why each change exists.
 
 22. **Commit:**
     ```bash
@@ -355,12 +359,31 @@ Product security prohibits force pushing. Use the `merge -s ours` strategy:
     git push upstream ci-check-rebase-$UPSTREAM_TAG
     ```
 
-25. **Create the CI validation PR — NOT as a draft:**
+25. **Create the CI validation PR — NOT as a draft.** Include collaboration instructions in the body so teammates know how to contribute fixes:
 
     ```bash
     gh pr create --repo opendatahub-io/mlflow --base master \
       --head ci-check-rebase-$UPSTREAM_TAG \
-      --title "[DO NOT MERGE] CI validation for MLflow $UPSTREAM_TAG rebase"
+      --title "[DO NOT MERGE] CI validation for MLflow $UPSTREAM_TAG rebase" \
+      --body "$(cat <<'EOF'
+    ## DO NOT MERGE THIS PR
+
+    CI validation only for the MLflow $UPSTREAM_TAG rebase. Workflow path filters removed to trigger all pipelines.
+
+    **Clean rebase branch:** `rebase-$UPSTREAM_TAG`
+
+    ### Want to help test or fix something?
+
+    If you spot an issue on the rebased branch, here's how to submit a fix:
+
+    1. Create a branch off `rebase-$UPSTREAM_TAG` (not master)
+    2. Commit your fix with a `keep:` prefix (e.g. `keep: Fix modal padding after rebase`)
+    3. Add a line to `FORK_HISTORY.md` under "Post-rebase fixes" describing what you fixed
+    4. Open a PR targeting `rebase-$UPSTREAM_TAG` (not master)
+
+    The rebase owner will merge it and rebuild the CI validation branch.
+    EOF
+    )"
     ```
 
     **Do NOT use `--draft`.** Most workflows have `if: draft == false` and will skip. Un-drafting later does not re-trigger them (the `ready_for_review` event is not in the triggers).
@@ -421,6 +444,28 @@ Product security prohibits force pushing. Use the `merge -s ours` strategy:
 31. **Cleanup** after merge:
     - Delete `ci-check-rebase-$UPSTREAM_TAG` branch from upstream
     - Keep `rebase-$UPSTREAM_TAG` and `master-MM-DD` for reference
+
+---
+
+## Team Collaboration During Rebase
+
+Teammates can help test and fix the rebase branch without running this skill.
+
+**For teammates submitting fixes:**
+
+1. Create a branch off `rebase-$UPSTREAM_TAG` (not master)
+2. Fix the issue, commit with `keep:` prefix
+3. Add a line to `FORK_HISTORY.md` under "Post-rebase fixes" describing what was fixed and why
+4. Open a PR targeting `rebase-$UPSTREAM_TAG` (not master)
+
+**For the rebase owner (the person running this skill):**
+
+1. Review and merge the teammate's PR into `rebase-$UPSTREAM_TAG`
+2. Pull the latest: `git pull upstream rebase-$UPSTREAM_TAG`
+3. Rebuild the ci-check branch (step 27 above) to re-trigger CI
+4. Push: `git push upstream ci-check-rebase-$UPSTREAM_TAG --force-with-lease`
+
+This keeps the rebase owner in control of the ci-check branch and the final merge, while letting the team contribute fixes in parallel.
 
 ---
 

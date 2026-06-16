@@ -100,9 +100,19 @@ These break CI after every rebase. Fix them proactively before pushing.
 - **`mlflow/server/js/src/lang/default/en.json`**: Two conflicts where upstream added new i18n entries. Kept entries from both sides in correct sort order.
 - **`mlflow/server/js/src/workspaces/utils/WorkspaceUtils.ts`**: Upstream refactored to `useSyncExternalStore` pattern (`activeWorkspaceListeners`). ODH has `onWorkspaceChange` callback for Redux store dispatch. Kept both subscription patterns; `setActiveWorkspace` notifies both listener sets.
 
-### Post-rebase CI fix
+### Post-rebase fixes
 
-- **`.github/actions/setup-python/action.yml`**: The action set `UV_EXCLUDE_NEWER=P7D` as an environment variable (line 69), which overrode `pyproject.toml`'s `P14D` at `uv lock` time. This caused the version-sync CI check to fail because `uv lock` regenerated `uv.lock` with `P7D` instead of `P14D`. Fixed by changing the env var to `P14D`.
+**CI fixes:**
+
+- **`.github/actions/setup-python/action.yml`**: `UV_EXCLUDE_NEWER=P7D` env var overrode `pyproject.toml`'s `P14D`, causing `uv lock` drift. Fixed to `P14D`.
+- **`en.json`**: Removed orphaned i18n key `RgVN+O` (upstream component removed in v3.13.0).
+- **`.github/actions/build-image/action.yml`**: Moved `${{ }}` interpolations to `env:` blocks for conftest lint compliance.
+- **`pyproject.toml`**: Added `FORK_HISTORY.md` to typos checker `extend-exclude`.
+- **`validations.test.ts`**: Updated test to match ODH's simplified error handling (`callback(undefined)` on any API error instead of upstream's specific error message).
+
+**UI fixes found during visual verification:**
+
+- **`_scope-and-base-controls.scss`**: Removed global `align-self: center` from button override — it fought with form layouts (tags modal `+` button misaligned with inputs) and control bars (`+ New run` misaligned with kebab icon). Replaced with targeted `align-items: center` on the prompts detail action bar container only.
 
 ### Notes
 
