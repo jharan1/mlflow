@@ -261,7 +261,15 @@ Squash `keep:` commits into 3 categories, in this order:
     uv run pre-commit run prettier --files FORK_HISTORY.md .claude/skills/rebase-mlflow/skill.md
     ```
 
-18. **Commit all fixes together:**
+18. **Upstream tests broken by ODH simplifications** — When conflict resolution simplifies upstream behavior (e.g., `validations.ts` catch-all), the corresponding upstream tests may still expect the old behavior. Run the JS tests locally to catch these:
+
+    ```bash
+    cd mlflow/server/js && yarn test --watchAll=false 2>&1 | tail -20
+    ```
+
+    Update the test expectations to match ODH's implementation, not the other way around.
+
+19. **Commit all fixes together:**
 
     ```bash
     git add -A && git commit -s -m "keep: Post-rebase CI fixes
@@ -270,7 +278,8 @@ Squash `keep:` commits into 3 categories, in this order:
     - Set UV_EXCLUDE_NEWER=P14D in setup-python action
     - Fix conftest lint violations in composite actions
     - Verify FORK_HISTORY.md typos exclusion in pyproject.toml
-    - Run prettier on markdown files"
+    - Run prettier on markdown files
+    - Update tests broken by ODH simplifications"
     ```
 
 **Next:** CI issues are fixed. Move to Phase 5 to prepare the branch for merging.
