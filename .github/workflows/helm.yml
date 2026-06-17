@@ -3,19 +3,7 @@ name: Helm Chart
 on:
   push:
     branches: [master, "branch-[0-9]+.[0-9]+"]
-    paths:
-      - charts/**
-      - docker/Dockerfile
-      - mlflow/server/**
-      - mlflow/tracking/**
-      - mlflow/cli/**
   pull_request:
-    paths:
-      - charts/**
-      - docker/Dockerfile
-      - mlflow/server/**
-      - mlflow/tracking/**
-      - mlflow/cli/**
 
 defaults:
   run:
